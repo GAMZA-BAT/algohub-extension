@@ -6,13 +6,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log("[algohub] 백그라운드: 코드 저장 시도", {
             codeLength: request.code ? request.code.length : 0,
             username: request.username,
-            problemId: request.problemId
+            problemId: request.problemId,
+            isAlgoHubEnabled: request.isAlgoHubEnabled
         });
         
         chrome.storage.local.set({
             algohub_submitted_code: request.code,
             algohub_username: request.username,
-            algohub_problem_id: request.problemId
+            algohub_problem_id: request.problemId,
+            algohub_enabled: request.isAlgoHubEnabled
         }, () => {
             if (chrome.runtime.lastError) {
                 console.error("[algohub] 백그라운드: 저장 중 오류 발생", chrome.runtime.lastError);
@@ -23,7 +25,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                     console.log("[algohub] 백그라운드: 저장 후 전체 데이터", {
                         codeLength: result.algohub_submitted_code ? result.algohub_submitted_code.length : 0,
                         username: result.algohub_username,
-                        problemId: result.algohub_problem_id
+                        problemId: result.algohub_problem_id,
+                        isAlgoHubEnabled: result.algohub_enabled
                     });
                 });
                 sendResponse({status: "success"});
@@ -37,7 +40,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             console.log("[algohub] 백그라운드: 코드 조회 결과", {
                 codeLength: result.algohub_submitted_code ? result.algohub_submitted_code.length : 0,
                 username: result.algohub_username,
-                problemId: result.algohub_problem_id
+                problemId: result.algohub_problem_id,
+                isAlgoHubEnabled: result.algohub_enabled
             });
             sendResponse(result);
         });
@@ -51,7 +55,8 @@ setInterval(() => {
         console.log("[algohub] 백그라운드: 주기적 데이터 확인", {
             codeLength: result.algohub_submitted_code ? result.algohub_submitted_code.length : 0,
             username: result.algohub_username,
-            problemId: result.algohub_problem_id
+            problemId: result.algohub_problem_id,
+            isAlgoHubEnabled: result.algohub_enabled
         });
     });
 }, 5000);  // 5초마다 확인

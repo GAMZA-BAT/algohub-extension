@@ -1,5 +1,7 @@
 console.log("[algohub] 스크립트 시작");
 
+let isAlgoHubEnabled = false;
+
 // 제출 페이지 처리
 if (window.location.href.match(/\/submit\/\d+/)) {
     console.log("[algohub] 문제 제출 페이지 감지");
@@ -16,6 +18,32 @@ if (window.location.href.match(/\/submit\/\d+/)) {
         console.log("[algohub] 제출 버튼 찾음");
         const submitButton = document.querySelector('#submit_button');
         
+        // AlgoHub 제출 토글 버튼 생성
+        const algoHubToggle = document.createElement('button');
+        algoHubToggle.textContent = 'AlgoHub 제출: Off';
+        algoHubToggle.style.marginLeft = '10px';
+        algoHubToggle.style.padding = '5px 10px';
+        algoHubToggle.style.backgroundColor = '#dedede';
+        algoHubToggle.style.border = '1px solid #ccc';
+        algoHubToggle.style.borderRadius = '4px';
+        algoHubToggle.style.color = 'black';
+
+        function updateToggleState() {
+            algoHubToggle.textContent = `AlgoHub 제출: ${isAlgoHubEnabled ? 'On' : 'Off'}`;
+            algoHubToggle.style.backgroundColor = isAlgoHubEnabled ? '#666A73' : '#dedede';
+            algoHubToggle.style.color = isAlgoHubEnabled ? 'white' : 'black';
+        }
+
+        algoHubToggle.addEventListener('click', function(event) {
+            event.preventDefault(); // 폼 제출 방지
+            isAlgoHubEnabled = !isAlgoHubEnabled;
+            updateToggleState();
+            console.log("[algohub] 토글 상태 변경:", isAlgoHubEnabled);
+        });
+
+        submitButton.parentNode.insertBefore(algoHubToggle, submitButton.nextSibling);
+        
+        // 기존 제출 버튼의 클릭 이벤트를 가로챔, 새로운 처리를 추가
         submitButton.addEventListener('click', function(event) {
             console.log("[algohub] 제출 버튼 클릭");
             
@@ -25,13 +53,15 @@ if (window.location.href.match(/\/submit\/\d+/)) {
             
             console.log("[algohub] 추출된 코드:", code);
             console.log("[algohub] 저장할 데이터:", { code: code.substring(0, 100) + "...", username, problemId });
+            console.log("[algohub] AlgoHub 제출 상태:", isAlgoHubEnabled);
             
             if (code && username && problemId) {
                 chrome.runtime.sendMessage({
                     action: "saveCode",
                     code: code,
                     username: username,
-                    problemId: problemId
+                    problemId: problemId,
+                    isAlgoHubEnabled: isAlgoHubEnabled
                 }, (response) => {
                     console.log("[algohub] 코드 저장 응답:", response);
                 });
@@ -87,7 +117,7 @@ function checkResult() {
     console.log("[algohub] 결과 확인 시작");
     chrome.runtime.sendMessage({action: "getCode"}, (result) => {
         console.log("[algohub] 저장된 데이터 조회 결과:", result);
-        let { algohub_submitted_code: code, algohub_username: username, algohub_problem_id: problemId } = result;
+        let { algohub_submitted_code: code, algohub_username: username, algohub_problem_id: problemId, algohub_enabled: isEnabled } = result;
         
         if (!username || !problemId) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -101,7 +131,12 @@ function checkResult() {
             return;
         }
 
-        console.log("[algohub] 확인할 정보:", { username, problemId });
+        console.log("[algohub] 확인할 정보:", { username, problemId, isEnabled });
+
+        if (isEnabled === false) {
+            console.log("[algohub] AlgoHub 제출이 비활성화되어 있어 결과 확인을 중단합니다.");
+            return;
+        }
 
         let attempts = 0;
         const maxAttempts = 5*60; // 최대 300번 시도 (5분)
@@ -134,17 +169,16 @@ function checkResult() {
                         return;
                     }
                     
-                    if (resultElement.classList.contains('result-ac')) {
-                        console.log("[algohub] 정답 감지");
-                        if (code) {
+                    // 채점이 완료된 경우
+                    if (!resultElement.textContent.includes("채점 중") && !resultElement.textContent.includes("채점 준비 중")) {
+                        console.log("[algohub] 채점 완료 감지");
+                        if (isEnabled && code) {
                             sendToAPI(code, username);
                             // 백그라운드 스토리지 클리어
-                            chrome.runtime.sendMessage({action: "saveCode", code: null, username: null, problemId: null});
+                            chrome.runtime.sendMessage({action: "saveCode", code: null, username: null, problemId: null, isAlgoHubEnabled: null});
                         } else {
-                            console.log("[algohub] 저장된 코드 없음");
+                            console.log("[algohub] AlgoHub가 비활성화되어 있거나 저장된 코드 없음");
                         }
-                    } else {
-                        console.log("[algohub] 오답 또는 다른 결과");
                     }
                     return;
                 }
