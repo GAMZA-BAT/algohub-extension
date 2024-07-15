@@ -20,18 +20,31 @@ if (window.location.href.match(/\/submit\/\d+/)) {
         
         // AlgoHub 제출 토글 버튼 생성
         const algoHubToggle = document.createElement('button');
-        algoHubToggle.textContent = 'AlgoHub 제출: Off';
-        algoHubToggle.style.marginLeft = '10px';
-        algoHubToggle.style.padding = '5px 10px';
-        algoHubToggle.style.backgroundColor = '#dedede';
-        algoHubToggle.style.border = '1px solid #ccc';
-        algoHubToggle.style.borderRadius = '4px';
-        algoHubToggle.style.color = 'black';
+        algoHubToggle.style.display = 'flex';
+        // algoHubToggle.style.alignItems = 'center';
+        algoHubToggle.style.marginTop = '10px';
+        // algoHubToggle.style.padding = '10px';
+        algoHubToggle.style.backgroundColor = 'transparent';
+        algoHubToggle.style.border = 'none';
+        algoHubToggle.style.cursor = 'pointer';
+
+        // 아이콘 이미지 추가
+        const icon = document.createElement('img');
+        icon.src = chrome.runtime.getURL('icon.png');
+        icon.style.width = '30px';
+        icon.style.height = '30px';
+        icon.style.marginRight = '5px';
+        algoHubToggle.appendChild(icon);
+
+        // "공유" 텍스트 추가
+        const shareText = document.createElement('span');
+        shareText.textContent = '공유';
+        shareText.style.fontSize = '15px';
+        algoHubToggle.appendChild(shareText);
 
         function updateToggleState() {
-            algoHubToggle.textContent = `AlgoHub 제출: ${isAlgoHubEnabled ? 'On' : 'Off'}`;
-            algoHubToggle.style.backgroundColor = isAlgoHubEnabled ? '#666A73' : '#dedede';
-            algoHubToggle.style.color = isAlgoHubEnabled ? 'white' : 'black';
+            algoHubToggle.style.opacity = isAlgoHubEnabled ? '1' : '0.5';
+            algoHubToggle.title = `AlgoHub 공유: ${isAlgoHubEnabled ? 'On' : 'Off'}`;
         }
 
         algoHubToggle.addEventListener('click', function(event) {
@@ -42,6 +55,7 @@ if (window.location.href.match(/\/submit\/\d+/)) {
         });
 
         submitButton.parentNode.insertBefore(algoHubToggle, submitButton.nextSibling);
+        updateToggleState();
         
         // 기존 제출 버튼의 클릭 이벤트를 가로챔, 새로운 처리를 추가
         submitButton.addEventListener('click', function(event) {
@@ -173,7 +187,7 @@ function checkResult() {
                     if (!resultElement.textContent.includes("채점 중") && !resultElement.textContent.includes("채점 준비 중")) {
                         console.log("[algohub] 채점 완료 감지");
                         if (isEnabled && code) {
-                            sendToAPI(code, username);
+                            sendToAPI(code,problemId,username);
                             // 백그라운드 스토리지 클리어
                             chrome.runtime.sendMessage({action: "saveCode", code: null, username: null, problemId: null, isAlgoHubEnabled: null});
                         } else {
@@ -195,7 +209,7 @@ function checkResult() {
     });
 }
 
-function sendToAPI(code, username) {
+function sendToAPI(code,problemId,username) {
     console.log("[algohub] API로 데이터 전송 시도");
     fetch('http://localhost:8080/api/solution', {
         method: 'POST',
@@ -204,7 +218,8 @@ function sendToAPI(code, username) {
         },
         body: JSON.stringify({ 
             username: username,
-            code: code
+            code: code,
+            number: problemId
         }),
     })
     .then(response => {

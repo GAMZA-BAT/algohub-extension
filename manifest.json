@@ -27,5 +27,11 @@
     },
     "icons": {
       "48": "icon.png"
+    },
+    "web_accessible_resources": [
+    {
+      "resources": ["icon.png"],
+      "matches": ["<all_urls>"]
     }
+  ]
 }
