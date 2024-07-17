@@ -21,9 +21,7 @@ if (window.location.href.match(/\/submit\/\d+/)) {
         // AlgoHub 제출 토글 버튼 생성
         const algoHubToggle = document.createElement('button');
         algoHubToggle.style.display = 'flex';
-        // algoHubToggle.style.alignItems = 'center';
         algoHubToggle.style.marginTop = '10px';
-        // algoHubToggle.style.padding = '10px';
         algoHubToggle.style.backgroundColor = 'transparent';
         algoHubToggle.style.border = 'none';
         algoHubToggle.style.cursor = 'pointer';
@@ -48,7 +46,7 @@ if (window.location.href.match(/\/submit\/\d+/)) {
         }
 
         algoHubToggle.addEventListener('click', function(event) {
-            event.preventDefault(); // 폼 제출 방지
+            event.preventDefault();
             isAlgoHubEnabled = !isAlgoHubEnabled;
             updateToggleState();
             console.log("[algohub] 토글 상태 변경:", isAlgoHubEnabled);
@@ -165,14 +163,15 @@ function checkResult() {
                 const rowUsername = row.querySelector('td:nth-child(2)').textContent.trim();
                 const rowProblemId = row.querySelector('td:nth-child(3) a').textContent.trim();
                 const resultElement = row.querySelector('td:nth-child(4) .result-text');
+                const submissionId = row.querySelector('td:nth-child(1)').textContent.trim(); // 제출 번호 추출
 
-                console.log("[algohub] 행 정보:", { rowUsername, rowProblemId, resultText: resultElement ? resultElement.textContent : 'N/A' });
+                console.log("[algohub] 행 정보:", { rowUsername, rowProblemId, resultText: resultElement ? resultElement.textContent : 'N/A', submissionId });
 
                 if (rowUsername === username && rowProblemId === problemId && resultElement) {
                     console.log("[algohub] 결과 요소 발견");
                     console.log("[algohub] 결과 확인: " + resultElement.textContent);
                     
-                    if (resultElement.textContent.includes("채점 중") || resultElement.textContent.includes("채점 준비 중")) {
+                    if (resultElement.textContent.includes("채점 중") || resultElement.textContent.includes("채점 준비 중") || resultElement.textContent.includes("기다리는 중")) {
                         console.log("[algohub] 채점 중 상태 감지. 대기 후 재시도.");
                         attempts++;
                         if (attempts < maxAttempts) {
@@ -187,7 +186,7 @@ function checkResult() {
                     if (!resultElement.textContent.includes("채점 중") && !resultElement.textContent.includes("채점 준비 중")) {
                         console.log("[algohub] 채점 완료 감지");
                         if (isEnabled && code) {
-                            sendToAPI(code,problemId,username);
+                            sendToAPI(code, problemId, username, submissionId);
                             // 백그라운드 스토리지 클리어
                             chrome.runtime.sendMessage({action: "saveCode", code: null, username: null, problemId: null, isAlgoHubEnabled: null});
                         } else {
@@ -209,7 +208,7 @@ function checkResult() {
     });
 }
 
-function sendToAPI(code,problemId,username) {
+function sendToAPI(code, problemId, username, submissionId) {
     console.log("[algohub] API로 데이터 전송 시도");
     fetch('http://localhost:8080/api/solution', {
         method: 'POST',
@@ -219,7 +218,8 @@ function sendToAPI(code,problemId,username) {
         body: JSON.stringify({ 
             username: username,
             code: code,
-            number: problemId
+            number: problemId,
+            submissionId: submissionId // 제출 번호 추가
         }),
     })
     .then(response => {
