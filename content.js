@@ -218,8 +218,8 @@ function sendToAPI(code, problemId, username, submissionId) {
         body: JSON.stringify({ 
             username: username,
             code: code,
-            number: problemId,
-            submissionId: submissionId // 제출 번호 추가
+            problemNumber: problemId,
+            submissionId: submissionId
         }),
     })
     .then(response => {
