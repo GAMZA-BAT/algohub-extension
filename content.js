@@ -216,7 +216,7 @@ function sendToAPI(code, problemId, username, submissionId) {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-            username: username,
+            userName: username,
             code: code,
             problemNumber: problemId,
             submissionId: submissionId
