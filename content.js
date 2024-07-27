@@ -231,28 +231,23 @@ function sendToAPI({ code, problemId, username, submissionId, memoryUsage, execu
     const executionTimeInt = parseInt(executionTime, 10);
     const codeLengthInt = parseInt(codeLength, 10);
 
-    // 변환된 값으로 API 호출
-    fetch('http://localhost:8080/api/solution', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-            userName: username,
-            code: code,
-            submissionId: submissionId,
-            codeType: codeType,
-            result: result,
-            memoryUsage: memoryUsageInt,
-            executionTime: executionTimeInt,
-            codeLength: codeLengthInt,
-            problemNumber: problemNumber
-        }),
-    })
-    .then(response => {
-        if (response.status === 200){ 
-            console.log("[algohub] API 응답 성공");
+    const data = { 
+        userName: username,
+        code: code,
+        submissionId: submissionId,
+        codeType: codeType,
+        result: result,
+        memoryUsage: memoryUsageInt,
+        executionTime: executionTimeInt,
+        codeLength: codeLengthInt,
+        problemNumber: problemNumber
+    };
+
+    chrome.runtime.sendMessage({action: "sendToAPI", data: data}, response => {
+        if (response.success) {
+            console.log("[algohub] API 응답 성공:", response.data);
+        } else {
+            console.error("[algohub] API 오류:", response.error);
         }
-    })
-    .catch((error) => console.error("[algohub] API 오류:", error));
+    });
 }
