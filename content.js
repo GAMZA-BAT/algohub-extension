@@ -164,8 +164,12 @@ function checkResult() {
                 const rowProblemId = row.querySelector('td:nth-child(3) a').textContent.trim();
                 const resultElement = row.querySelector('td:nth-child(4) .result-text');
                 const submissionId = row.querySelector('td:nth-child(1)').textContent.trim(); // 제출 번호 추출
+                const memoryUsage = row.querySelector('td:nth-child(5)').textContent.trim(); // 메모리 추출
+                const executionTime = row.querySelector('td:nth-child(6)').textContent.trim(); // 실행 시간 추출
+                const codeType = row.querySelector('td:nth-child(7)').textContent.trim(); // 언어 추출
+                const codeLength = row.querySelector('td:nth-child(8)').textContent.trim(); // 코드 길이 추출
 
-                console.log("[algohub] 행 정보:", { rowUsername, rowProblemId, resultText: resultElement ? resultElement.textContent : 'N/A', submissionId });
+                console.log("[algohub] 행 정보:", { rowUsername, rowProblemId, resultText: resultElement ? resultElement.textContent : 'N/A', submissionId, memoryUsage, executionTime, codeType, codeLength });
 
                 if (rowUsername === username && rowProblemId === problemId && resultElement) {
                     console.log("[algohub] 결과 요소 발견");
@@ -186,7 +190,17 @@ function checkResult() {
                     if (!resultElement.textContent.includes("채점 중") && !resultElement.textContent.includes("채점 준비 중")) {
                         console.log("[algohub] 채점 완료 감지");
                         if (isEnabled && code) {
-                            sendToAPI(code, problemId, username, submissionId);
+                            sendToAPI({
+                                code,
+                                problemId,
+                                username,
+                                submissionId,
+                                memoryUsage,
+                                executionTime,
+                                codeType,
+                                codeLength,
+                                result: resultElement.textContent.trim()
+                            });
                             // 백그라운드 스토리지 클리어
                             chrome.runtime.sendMessage({action: "saveCode", code: null, username: null, problemId: null, isAlgoHubEnabled: null});
                         } else {
@@ -208,8 +222,16 @@ function checkResult() {
     });
 }
 
-function sendToAPI(code, problemId, username, submissionId) {
+function sendToAPI({ code, problemId, username, submissionId, memoryUsage, executionTime, codeType, codeLength, result }) {
     console.log("[algohub] API로 데이터 전송 시도");
+
+    // 문자열에서 정수로 변환
+    const problemNumber = parseInt(problemId, 10);
+    const memoryUsageInt = parseInt(memoryUsage, 10);
+    const executionTimeInt = parseInt(executionTime, 10);
+    const codeLengthInt = parseInt(codeLength, 10);
+
+    // 변환된 값으로 API 호출
     fetch('http://localhost:8080/api/solution', {
         method: 'POST',
         headers: {
@@ -218,8 +240,13 @@ function sendToAPI(code, problemId, username, submissionId) {
         body: JSON.stringify({ 
             userName: username,
             code: code,
-            problemNumber: problemId,
-            submissionId: submissionId
+            submissionId: submissionId,
+            codeType: codeType,
+            result: result,
+            memoryUsage: memoryUsageInt,
+            executionTime: executionTimeInt,
+            codeLength: codeLengthInt,
+            problemNumber: problemNumber
         }),
     })
     .then(response => {
