@@ -1,11 +1,7 @@
-console.log("[algohub] 스크립트 시작");
-
 let isAlgoHubEnabled = false;
 
 // 제출 페이지 처리
 if (window.location.href.match(/\/submit\/\d+/)) {
-    console.log("[algohub] 문제 제출 페이지 감지");
-
     function waitForElement(selector, callback) {
         if (document.querySelector(selector)) {
             callback();
@@ -15,7 +11,6 @@ if (window.location.href.match(/\/submit\/\d+/)) {
     }
 
     waitForElement('#submit_button', () => {
-        console.log("[algohub] 제출 버튼 찾음");
         const submitButton = document.querySelector('#submit_button');
         
         // AlgoHub 제출 토글 버튼 생성
@@ -57,15 +52,9 @@ if (window.location.href.match(/\/submit\/\d+/)) {
         
         // 기존 제출 버튼의 클릭 이벤트를 가로챔, 새로운 처리를 추가
         submitButton.addEventListener('click', function(event) {
-            console.log("[algohub] 제출 버튼 클릭");
-            
             const code = getCode();
             const username = getUsername();
             const problemId = getProblemId();
-            
-            console.log("[algohub] 추출된 코드:", code);
-            console.log("[algohub] 저장할 데이터:", { code: code.substring(0, 100) + "...", username, problemId });
-            console.log("[algohub] AlgoHub 제출 상태:", isAlgoHubEnabled);
             
             if (code && username && problemId) {
                 chrome.runtime.sendMessage({
@@ -86,10 +75,7 @@ if (window.location.href.match(/\/submit\/\d+/)) {
 
 // 채점 현황 페이지 처리
 if (window.location.href.match(/\/status/)) {
-    console.log("[algohub] 채점 현황 페이지 감지");
-    
     window.addEventListener('load', () => {
-        console.log("[algohub] 페이지 로드 완료");
         checkResult();
     });
 }
@@ -99,14 +85,12 @@ function getCode() {
     const extractedCode = Array.from(codeLines).map(line => {
         return line.textContent.trim();
     }).join('\n');
-    console.log("[algohub] 추출된 코드:", extractedCode);
     return extractedCode;
 }
 
 function getUsername() {
     const usernameElement = document.querySelector('.username');
     if (usernameElement) {
-        console.log("[algohub] 사용자 이름 확인: " + usernameElement.textContent.trim());
         return usernameElement.textContent.trim();
     } else {
         console.log("[algohub] 사용자 이름을 찾을 수 없음");
@@ -117,7 +101,6 @@ function getUsername() {
 function getProblemId() {
     const match = window.location.href.match(/\/submit\/(\d+)/);
     if (match) {
-        console.log("[algohub] 문제 ID 확인: " + match[1]);
         return match[1];
     } else {
         console.log("[algohub] 문제 ID를 찾을 수 없음");
@@ -126,16 +109,13 @@ function getProblemId() {
 }
 
 function checkResult() {
-    console.log("[algohub] 결과 확인 시작");
     chrome.runtime.sendMessage({action: "getCode"}, (result) => {
-        console.log("[algohub] 저장된 데이터 조회 결과:", result);
         let { algohub_submitted_code: code, algohub_username: username, algohub_problem_id: problemId, algohub_enabled: isEnabled } = result;
         
         if (!username || !problemId) {
             const urlParams = new URLSearchParams(window.location.search);
             username = username || urlParams.get('user_id');
             problemId = problemId || urlParams.get('problem_id');
-            console.log("[algohub] URL에서 추출한 정보:", { username, problemId });
         }
 
         if (!username || !problemId) {
@@ -143,10 +123,8 @@ function checkResult() {
             return;
         }
 
-        console.log("[algohub] 확인할 정보:", { username, problemId, isEnabled });
-
         if (isEnabled === false) {
-            console.log("[algohub] AlgoHub 제출이 비활성화되어 있어 결과 확인을 중단합니다.");
+            console.log("[algohub] AlgoHub 공유가 비활성화 된 풀이");
             return;
         }
 
@@ -157,7 +135,6 @@ function checkResult() {
 
         function tryCheckResult() {
             const resultRows = document.querySelectorAll('table.table-bordered tbody tr');
-            console.log("[algohub] 결과 행 수:", resultRows.length);
             
             for (let row of resultRows) {
                 const rowUsername = row.querySelector('td:nth-child(2)').textContent.trim();
@@ -168,25 +145,18 @@ function checkResult() {
                 const codeType = row.querySelector('td:nth-child(7)').textContent.trim(); // 언어 추출
                 const codeLength = row.querySelector('td:nth-child(8)').textContent.trim(); // 코드 길이 추출
 
-                console.log("[algohub] 행 정보:", { rowUsername, rowProblemId, resultText: resultElement ? resultElement.textContent : 'N/A',memoryUsage, executionTime, codeType, codeLength });
-
                 if (rowUsername === username && rowProblemId === problemId && resultElement) {
-                    console.log("[algohub] 결과 요소 발견");
-                    console.log("[algohub] 결과 확인: " + resultElement.textContent);
-                    
+                    // 아직 채점 중인 경우
                     if (resultElement.textContent.includes("채점 중") || resultElement.textContent.includes("채점 준비 중") || resultElement.textContent.includes("기다리는 중")) {
-                        console.log("[algohub] 채점 중 상태 감지. 대기 후 재시도.");
                         attempts++;
                         if (attempts < maxAttempts) {
                             setTimeout(tryCheckResult, 1000); // 1초 후 재시도
                         } else {
-                            console.log("[algohub] 최대 시도 횟수 초과. 채점 결과를 기다리는 데 실패했습니다.");
+                            console.log("[algohub] 채점 시간이 초과 됨 (5분)");
                         }
                         return;
                     }
-                    
-                    // 채점이 완료된 경우
-                    if (!resultElement.textContent.includes("채점 중") && !resultElement.textContent.includes("채점 준비 중")) {
+                    else{ // 채점 완료 감지
                         console.log("[algohub] 채점 완료 감지");
                         if (isEnabled && code) {
                             sendToAPI({
@@ -211,24 +181,22 @@ function checkResult() {
             
             attempts++;
             if (attempts < maxAttempts) {
-                console.log(`[algohub] 결과를 찾지 못함. 재시도 (${attempts}/${maxAttempts})`);
                 setTimeout(tryCheckResult, 1000);
             } else {
-                console.log("[algohub] 최대 시도 횟수 초과. 결과를 찾지 못함.");
+                console.log("[algohub] 채점 시간이 초과되어 결과를 찾지 못함");
             }
         }
     });
 }
 
 function sendToAPI({ code, problemId, username, memoryUsage, executionTime, codeType, codeLength, result }) {
-    console.log("[algohub] API로 데이터 전송 시도");
+    console.log("[algohub] AlgoHub API 호출");
 
     // 문자열에서 정수로 변환
     const problemNumber = parseInt(problemId, 10);
     const memoryUsageInt = parseInt(memoryUsage, 10);
     const executionTimeInt = parseInt(executionTime, 10);
     const codeLengthInt = parseInt(codeLength, 10);
-
     const cleanedCodeType = codeType.split('/')[0];
 
     const data = { 
@@ -243,9 +211,7 @@ function sendToAPI({ code, problemId, username, memoryUsage, executionTime, code
     };
 
     chrome.runtime.sendMessage({action: "sendToAPI", data: data}, response => {
-        if (response.success) {
-            console.log("[algohub] API 응답 성공:", response.data);
-        } else {
+        if (response.error){
             console.error("[algohub] API 오류:", response.error);
         }
     });
