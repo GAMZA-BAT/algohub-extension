@@ -83,7 +83,7 @@ if (window.location.href.match(/\/status/)) {
 function getCode() {
     const codeLines = document.querySelectorAll('.CodeMirror-line');
     const extractedCode = Array.from(codeLines).map(line => {
-        return line.textContent.trim();
+        return line.textContent;
     }).join('\n');
     return extractedCode;
 }
