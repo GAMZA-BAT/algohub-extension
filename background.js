@@ -43,7 +43,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true; // 비동기 응답을 위해 true 반환
     }
     else if (request.action === "sendToAPI") {
-        fetch('http://3.36.6.7:8080/api/solution', {
+        fetch('http://localhost:8080/api/solution', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
