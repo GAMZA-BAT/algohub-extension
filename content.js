@@ -13,42 +13,68 @@ if (window.location.href.match(/\/submit\/\d+/)) {
     waitForElement('#submit_button', () => {
         const submitButton = document.querySelector('#submit_button');
         
-        // AlgoHub 제출 토글 버튼 생성
-        const algoHubToggle = document.createElement('button');
-        algoHubToggle.style.display = 'flex';
-        algoHubToggle.style.marginTop = '10px';
-        algoHubToggle.style.backgroundColor = 'transparent';
-        algoHubToggle.style.border = 'none';
-        algoHubToggle.style.cursor = 'pointer';
+        // AlgoHub 제출 라디오 버튼 그룹 생성
+        const algoHubToggleGroup = document.createElement('div');
+        algoHubToggleGroup.style.display = 'flex';
+        algoHubToggleGroup.style.alignItems = 'center';
+        algoHubToggleGroup.style.marginLeft = '10px'; // 제출 버튼 오른쪽에 배치하기 위한 여백
 
-        // 아이콘 이미지 추가
-        const icon = document.createElement('img');
-        icon.src = chrome.runtime.getURL('icon.png');
-        icon.style.width = '30px';
-        icon.style.height = '30px';
-        icon.style.marginRight = '5px';
-        algoHubToggle.appendChild(icon);
+        const algoHubIcon = document.createElement('img');
+        algoHubIcon.src = chrome.runtime.getURL('icon.png'); // 확장 프로그램의 icon.png 파일 경로를 사용
+        algoHubIcon.style.width = '20px'; // 글자 크기와 같은 크기로 설정
+        algoHubIcon.style.height = '20px';
+        algoHubIcon.style.marginRight = '5px'; // 아이콘과 텍스트 사이의 간격 설정
+        algoHubToggleGroup.appendChild(algoHubIcon); // 아이콘 추가
 
-        // "공유" 텍스트 추가
-        const shareText = document.createElement('span');
-        shareText.textContent = '공유';
-        shareText.style.fontSize = '15px';
-        algoHubToggle.appendChild(shareText);
+        const label = document.createElement('span');
+        label.textContent = 'AlgoHub 제출';
+        label.style.marginRight = '10px';
+        label.style.fontSize = '15px';
+        algoHubToggleGroup.appendChild(label);
+
+        const radioOn = document.createElement('input');
+        radioOn.type = 'radio';
+        radioOn.name = 'algohub_toggle';
+        radioOn.id = 'algohub_on';
+        radioOn.style.marginRight = '5px';
+
+        const radioOnLabel = document.createElement('label');
+        radioOnLabel.textContent = '제출';
+        radioOnLabel.htmlFor = 'algohub_on';
+        radioOnLabel.style.marginRight = '10px';
+
+        const radioOff = document.createElement('input');
+        radioOff.type = 'radio';
+        radioOff.name = 'algohub_toggle';
+        radioOff.id = 'algohub_off';
+        radioOff.checked = true;
+        radioOff.style.marginRight = '5px';
+
+        const radioOffLabel = document.createElement('label');
+        radioOffLabel.textContent = '미제출';
+        radioOffLabel.htmlFor = 'algohub_off';
+
+        algoHubToggleGroup.appendChild(radioOn);
+        algoHubToggleGroup.appendChild(radioOnLabel);
+        algoHubToggleGroup.appendChild(radioOff);
+        algoHubToggleGroup.appendChild(radioOffLabel);
 
         function updateToggleState() {
-            algoHubToggle.style.opacity = isAlgoHubEnabled ? '1' : '0.5';
-            algoHubToggle.title = `AlgoHub 공유: ${isAlgoHubEnabled ? 'On' : 'Off'}`;
+            isAlgoHubEnabled = radioOn.checked;
+            console.log("[algohub] 라디오 버튼 상태 변경:", isAlgoHubEnabled);
         }
 
-        algoHubToggle.addEventListener('click', function(event) {
-            event.preventDefault();
-            isAlgoHubEnabled = !isAlgoHubEnabled;
-            updateToggleState();
-            console.log("[algohub] 토글 상태 변경:", isAlgoHubEnabled);
-        });
+        radioOn.addEventListener('change', updateToggleState);
+        radioOff.addEventListener('change', updateToggleState);
 
-        submitButton.parentNode.insertBefore(algoHubToggle, submitButton.nextSibling);
-        updateToggleState();
+        // 제출 버튼과 라디오 버튼 그룹을 동일한 줄에 배치
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+
+        submitButton.parentNode.insertBefore(container, submitButton);
+        container.appendChild(submitButton);
+        container.appendChild(algoHubToggleGroup);
         
         // 기존 제출 버튼의 클릭 이벤트를 가로챔, 새로운 처리를 추가
         submitButton.addEventListener('click', function(event) {
