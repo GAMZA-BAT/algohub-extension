@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "target": "ES6",
+      "lib": ["DOM", "ES6"],
+      "module": "ES6",
+      "moduleResolution": "Node",
+      "strict": true,
+      "esModuleInterop": true,
+      "outDir": "dist",
+      "rootDir": "src",
+      "typeRoots": ["node_modules/@types"]
+    },
+    "include": ["src/**/*.ts", "src/icon.png"],
+    "exclude": ["node_modules"]
+  }
