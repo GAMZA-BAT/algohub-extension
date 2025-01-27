@@ -16,7 +16,7 @@
     "content_scripts": [
       {
         "matches": ["https://www.acmicpc.net/*"],
-        "js": ["dist/content.js"]
+        "js": ["dist/contentBoj.js"]
       }
     ],
     "action": {
