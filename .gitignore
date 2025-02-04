@@ -1,2 +1,4 @@
 node_modules
 dist
+algohub-extension-v*.zip
+.DS_Store
