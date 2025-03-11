@@ -1,36 +1,45 @@
 {
-    "manifest_version": 3,
-    "name": "algohub",
-    "version": "1.0",
-    "description": "algohub-extension",
-    "permissions": [
-        "storage"
-    ],
-    "host_permissions": [
-      "https://api.algohub.kr/*",
-      "https://www.acmicpc.net/*"
-    ],
-    "background": {
-      "service_worker": "dist/background.js"
-    },
-    "content_scripts": [
-      {
-        "matches": ["https://www.acmicpc.net/*"],
-        "js": ["dist/contentBoj.js"]
-      }
-    ],
-    "action": {
-      "default_icon": {
-        "48": "dist/assets/icon.png"
-      }
-    },
-    "icons": {
-      "48": "dist/assets/icon.png"
-    },
-    "web_accessible_resources": [
+  "manifest_version": 3,
+  "name": "algohub",
+  "version": "1.0",
+  "description": "algohub-extension",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://api.algohub.kr/*",
+    "https://www.acmicpc.net/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.js"
+  },
+  "content_scripts": [
     {
-      "resources": ["dist/assets/icon.png"],
-      "matches": ["<all_urls>"]
+      "matches": [
+        "https://www.acmicpc.net/*",
+        "https://*algohub.kr/*"
+      ],
+      "js": [
+        "dist/contentBoj.js"
+      ]
+    }
+  ],
+  "action": {
+    "default_icon": {
+      "48": "dist/assets/icon.png"
+    }
+  },
+  "icons": {
+    "48": "dist/assets/icon.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dist/assets/icon.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
     }
   ]
 }

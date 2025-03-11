@@ -1,3 +1,4 @@
+import { isAlgohubPage, setIsInstalledToWindow } from './utils/algohub';
 import {
   isNonBlank,
   isStatusPage,
@@ -392,5 +393,10 @@ const sendToAPI = ({
     window.addEventListener('load', () => {
       handleStatusPage();
     });
+  }
+
+  // 알고헙 페이지 - 익스텐션 설치 확인용
+  if (isAlgohubPage()) {
+    setIsInstalledToWindow();
   }
 })();
