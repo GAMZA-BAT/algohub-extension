@@ -17,10 +17,12 @@
     {
       "matches": [
         "https://www.acmicpc.net/*",
-        "https://*algohub.kr/*"
+        "https://*.algohub.kr/*"
       ],
       "js": [
-        "dist/contentBoj.js"
+        "dist/contentBoj.js",
+        "dist/contentAlgohub.js",
+        "dist/index.js"
       ]
     }
   ],

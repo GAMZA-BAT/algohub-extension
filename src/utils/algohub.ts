@@ -1,13 +1,6 @@
-export function isAlgohubPage(): boolean {
-  return /\/algohub/.test(window.location.href);
-}
-
-export function setIsInstalledToWindow() {
-  window.isExtensionInstalled = true;
-}
-
-declare global {
-  interface Window {
-    isExtensionInstalled: boolean;
-  }
+export function setExtensionInstalled() {
+  // content_script.js
+  const meta = document.createElement('meta');
+  meta.name = 'extension-installed';
+  document.head.appendChild(meta);
 }

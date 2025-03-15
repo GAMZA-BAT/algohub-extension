@@ -1,4 +1,3 @@
-import { isAlgohubPage, setIsInstalledToWindow } from './utils/algohub';
 import {
   isNonBlank,
   isStatusPage,
@@ -382,7 +381,7 @@ const sendToAPI = ({
 /****************************************************
  * Entry points
  ****************************************************/
-(() => {
+const bojInit = () => {
   // 제출 페이지
   if (isSubmissionPage()) {
     handleSubmissionPage();
@@ -394,9 +393,6 @@ const sendToAPI = ({
       handleStatusPage();
     });
   }
+};
 
-  // 알고헙 페이지 - 익스텐션 설치 확인용
-  if (isAlgohubPage()) {
-    setIsInstalledToWindow();
-  }
-})();
+export default bojInit;
