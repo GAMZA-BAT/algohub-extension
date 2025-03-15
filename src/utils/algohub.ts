@@ -1,6 +1,7 @@
 export function setExtensionInstalled() {
-  // content_script.js
-  const meta = document.createElement('meta');
-  meta.name = 'extension-installed';
-  document.head.appendChild(meta);
+  if (!document.querySelector('meta[name="extension-installed"]')) {
+    const meta = document.createElement('meta');
+    meta.name = 'extension-installed';
+    document.head.appendChild(meta);
+  }
 }
