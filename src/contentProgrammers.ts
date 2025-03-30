@@ -14,7 +14,7 @@ const interceptSubmitButtonClick = (submitButton: HTMLButtonElement): void => {
   });
 };
 
-(() => {
+const programmersInit = () => {
   const viewSolutionGroup = document.querySelector<HTMLButtonElement>(
     '#view-solution-group',
   );
@@ -30,4 +30,6 @@ const interceptSubmitButtonClick = (submitButton: HTMLButtonElement): void => {
   });
 
   interceptSubmitButtonClick(submitButton);
-})();
+};
+
+export default programmersInit;

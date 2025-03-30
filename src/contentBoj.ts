@@ -381,7 +381,7 @@ const sendToAPI = ({
 /****************************************************
  * Entry points
  ****************************************************/
-(() => {
+const bojInit = () => {
   // 제출 페이지
   if (isSubmissionPage()) {
     handleSubmissionPage();
@@ -393,4 +393,6 @@ const sendToAPI = ({
       handleStatusPage();
     });
   }
-})();
+};
+
+export default bojInit;
